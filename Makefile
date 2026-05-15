@@ -12,25 +12,20 @@ clean:
 	./gradlew clean
 
 build:
-	cd app
-	./gradlew clean build
+	cd app && ./gradlew clean build
 
 dev: app
 
 reload-classes:
-	cd app
-	./gradlew -t classes
+	cd app && ./gradlew -t classes
 
 install:
-	cd app
-	./gradlew installDist
+	cd app && ./gradlew installDist
 
 test:
-	cd app
-	./gradlew test
+	cd app && ./gradlew test
 
 lint:
-	cd app
-	./gradlew spotlessApply
+	cd app && ./gradlew spotlessApply
 
 .PHONY: setup app clean build dev reload-classes install test lint
