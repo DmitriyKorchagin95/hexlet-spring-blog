@@ -19,6 +19,7 @@ public class PostController {
 
         return ResponseEntity
                 .ok()
+                .header("X-Total-Count", String.valueOf(posts.size()))
                 .body(result);
     }
 
@@ -33,7 +34,7 @@ public class PostController {
     }
 
     @GetMapping("/psots/{id}")
-    public ResponseEntity<?> show(@PathVariable Long id) {
+    public ResponseEntity<?> show(@PathVariable String id) {
         return posts.stream()
                 .filter(post -> post.getId().equals(id))
                 .findFirst()
@@ -43,7 +44,7 @@ public class PostController {
 
     @PutMapping("/posts/{id}")
     public ResponseEntity<?> update(
-            @PathVariable Long id,
+            @PathVariable String id,
             @RequestBody @Valid Post data
     ) {
 
@@ -64,7 +65,7 @@ public class PostController {
     }
 
     @DeleteMapping("/posts/{id}")
-    public ResponseEntity<?> deletePost(@PathVariable Long id) {
+    public ResponseEntity<?> deletePost(@PathVariable String id) {
         posts.removeIf(post -> post.getId().equals(id));
         return ResponseEntity.noContent().build();
     }

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Post {
-    private Long id;
+    private String id;
     @NotBlank
     @NotNull
     private String title;
