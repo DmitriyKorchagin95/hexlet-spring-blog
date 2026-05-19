@@ -10,10 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
+@RequestMapping("/api/posts")
 public class PostController {
     List<Post> posts = new ArrayList<>();
 
-    @GetMapping("/posts")
+    @GetMapping()
     public ResponseEntity<?> index(@RequestParam(defaultValue = "10") Integer limit) {
         var result = posts.stream().limit(limit).toList();
 
@@ -23,9 +24,9 @@ public class PostController {
                 .body(result);
     }
 
-    @PostMapping("/posts")
-    public ResponseEntity<?> create(@RequestBody @Valid Post post) {
-        URI location = URI.create(String.format("/posts/%s", post.getId()));
+    @PostMapping()
+    public ResponseEntity<?> createPost(@RequestBody @Valid Post post) {
+        URI location = URI.create(String.format("/api/posts/%s", post.getId()));
         posts.add(post);
 
         return ResponseEntity
@@ -33,8 +34,8 @@ public class PostController {
                 .body(post);
     }
 
-    @GetMapping("/psots/{id}")
-    public ResponseEntity<?> show(@PathVariable String id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<?> showPost(@PathVariable String id) {
         return posts.stream()
                 .filter(post -> post.getId().equals(id))
                 .findFirst()
@@ -42,8 +43,8 @@ public class PostController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/posts/{id}")
-    public ResponseEntity<?> update(
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updatePost (
             @PathVariable String id,
             @RequestBody @Valid Post data
     ) {
@@ -64,7 +65,7 @@ public class PostController {
         return ResponseEntity.notFound().build();
     }
 
-    @DeleteMapping("/posts/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePost(@PathVariable String id) {
         posts.removeIf(post -> post.getId().equals(id));
         return ResponseEntity.noContent().build();
