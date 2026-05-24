@@ -1,69 +1,66 @@
 package io.hexlet.blog.contorller;
 
 import io.hexlet.blog.model.User;
+import io.hexlet.blog.repository.UserRepository;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
+@RequiredArgsConstructor
 public class UserController {
-    List<User> users = new ArrayList<>();
+    private final UserRepository userRepository;
 
     @GetMapping
     public ResponseEntity<?> getAllUsers() {
         return ResponseEntity
-                .ok()
-                .body(users);
+                .ok().body(userRepository.findAll());
     }
 
     @PostMapping
     public ResponseEntity<?> createUser(@RequestBody @Valid User user) {
-        URI location = URI.create(String.format("/api/users/%s", user.getId()));
-        users.add(user);
+        var savedUser = userRepository.save(user);
+        URI location = URI.create(String.format("/api/users/%s", savedUser.getId()));
 
         return ResponseEntity
-                .created(location)
-                .body(user);
+                .created(location).body(savedUser);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser (
-            @PathVariable String id,
+    public ResponseEntity<?> updateUser(@PathVariable Long id,
             @RequestBody @Valid User data
     ) {
 
-        var maybeUser = users.stream()
-                .filter(user -> user.getId().equals(id))
-                .findFirst();
-
-        if (maybeUser.isPresent()) {
-            User user = maybeUser.get();
-            user.setName(data.getName());
+        return userRepository.findById(id).map(user -> {
+            user.setFirstname(data.getFirstname());
+            user.setLastname(data.getLastname());
             user.setEmail(data.getEmail());
-
-            return ResponseEntity.ok(user);
-        }
-
-        return ResponseEntity.notFound().build();
+            user.setBirthday(data.getBirthday());
+            User updatedUser = userRepository.save(user);
+            return ResponseEntity.ok(updatedUser);
+        }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> showUser(@PathVariable String id) {
-        return users.stream()
-                .filter(user -> user.getId().equals(id))
-                .findFirst()
+    public ResponseEntity<?> showUser(@PathVariable Long id) {
+        return userRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable String id) {
-        users.removeIf(user -> user.getId().equals(id));
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+
+        if (!userRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        userRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }
