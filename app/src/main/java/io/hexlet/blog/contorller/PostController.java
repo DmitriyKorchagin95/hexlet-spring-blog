@@ -1,5 +1,6 @@
 package io.hexlet.blog.contorller;
 
+import io.hexlet.blog.exception.ResourceNotFoundException;
 import io.hexlet.blog.model.Post;
 import io.hexlet.blog.repository.PostRepository;
 import jakarta.validation.Valid;
@@ -43,32 +44,32 @@ public class PostController {
     public ResponseEntity<?> showPost(@PathVariable Long id) {
         return postRepository.findById(id)
                 .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseThrow(() -> new ResourceNotFoundException("404 Not found"));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updatePost(
             @PathVariable Long id,
-            @RequestBody @Valid Post data
+            @RequestBody @Valid Post post
     ) {
 
         return postRepository.findById(id)
-                .map(post -> {
-                    post.setTitle(data.getTitle());
-                    post.setContent(data.getContent());
-                    post.setPublished(data.isPublished());
+                .map(p -> {
+                    p.setTitle(post.getTitle());
+                    p.setContent(post.getContent());
+                    p.setPublished(post.isPublished());
+                    Post updatedPost = postRepository.save(p);
 
-                    Post updatedPost = postRepository.save(post);
                     return ResponseEntity.ok(updatedPost);
                 })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseThrow(() -> new ResourceNotFoundException("404 Not found"));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePost(@PathVariable Long id) {
 
         if (!postRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
+            throw new ResourceNotFoundException("404 Not found");
         }
 
         postRepository.deleteById(id);
