@@ -5,10 +5,9 @@ import io.hexlet.blog.model.User;
 import io.hexlet.blog.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.net.URI;
 
 @RestController
 @RequestMapping("/api/users")
@@ -17,52 +16,45 @@ public class UserController {
     private final UserRepository userRepository;
 
     @GetMapping
-    public ResponseEntity<?> getAllUsers() {
-        return ResponseEntity
-                .ok()
-                .body(userRepository.findAll());
+    public ResponseEntity<?> index(@RequestParam(defaultValue = "10") Integer limit) {
+        var users = userRepository.findAll();
+        var limitedUsers = users.stream()
+                .limit(limit)
+                .toList();
+
+        return ResponseEntity.ok()
+                .header("X-Total-Count", String.valueOf(users.size()))
+                .body(limitedUsers);
     }
 
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody @Valid User user) {
+    public ResponseEntity<?> create(@RequestBody @Valid User user) {
         var savedUser = userRepository.save(user);
-        URI location = URI.create(String.format("/api/users/%s", savedUser.getId()));
-
-        return ResponseEntity
-                .created(location)
-                .body(savedUser);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id,
-                                        @RequestBody @Valid User user
-    ) {
-
-        return userRepository.findById(id).map(u -> {
-            u.setFirstname(user.getFirstname());
-            u.setLastname(user.getLastname());
-            u.setEmail(user.getEmail());
-            u.setBirthday(user.getBirthday());
-            User updatedUser = userRepository.save(u);
-            return ResponseEntity.ok(updatedUser);
-        }).orElseThrow(() -> new ResourceNotFoundException("404 not found"));
+        return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> showUser(@PathVariable Long id) {
-        return userRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElseThrow(() -> new ResourceNotFoundException("404 not found"));
+    public ResponseEntity<?> show(@PathVariable Long id) {
+        var user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("404 Not found"));
+        return ResponseEntity.ok(user);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody @Valid User userData) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("404 Not found"));
+        user.setFirstname(userData.getFirstname());
+        user.setLastname(userData.getLastname());
+        user.setEmail(userData.getEmail());
+        user.setBirthday(userData.getBirthday());
+        var updatedUser = userRepository.save(user);
+        return ResponseEntity.ok(updatedUser);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
-
-        if (!userRepository.existsById(id)) {
-            throw new ResourceNotFoundException("404 not found");
-        }
-
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
         userRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
     }
 }

@@ -5,10 +5,9 @@ import io.hexlet.blog.model.Post;
 import io.hexlet.blog.repository.PostRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.net.URI;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -19,61 +18,46 @@ public class PostController {
     @GetMapping
     public ResponseEntity<?> index(@RequestParam(defaultValue = "10") Integer limit) {
         var posts = postRepository.findAll();
-        var result = posts.stream()
+        var limitedPosts = posts.stream()
                 .limit(limit)
                 .toList();
 
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(posts.size()))
-                .body(result);
+                .body(limitedPosts);
     }
 
     @PostMapping
-    public ResponseEntity<?> createPost(@RequestBody @Valid Post post) {
-        Post savedPost = postRepository.save(post);
-        URI location = URI.create(
-                String.format("/api/posts/%s", savedPost.getId())
-        );
-
-        return ResponseEntity
-                .created(location)
-                .body(savedPost);
+    public ResponseEntity<?> create(@RequestBody @Valid Post post) {
+        var savedPost = postRepository.save(post);
+        return new ResponseEntity<>(savedPost, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> showPost(@PathVariable Long id) {
-        return postRepository.findById(id)
-                .map(ResponseEntity::ok)
+    public ResponseEntity<?> show(@PathVariable Long id) {
+        var post = postRepository
+                .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("404 Not found"));
+        return ResponseEntity.ok(post);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updatePost(
-            @PathVariable Long id,
-            @RequestBody @Valid Post post
-    ) {
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody @Valid Post postData) {
 
-        return postRepository.findById(id)
-                .map(p -> {
-                    p.setTitle(post.getTitle());
-                    p.setContent(post.getContent());
-                    p.setPublished(post.isPublished());
-                    Post updatedPost = postRepository.save(p);
-
-                    return ResponseEntity.ok(updatedPost);
-                })
+        Post post = postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("404 Not found"));
+
+        post.setTitle(postData.getTitle());
+        post.setContent(postData.getContent());
+        post.setPublished(postData.isPublished());
+        var updatedPost = postRepository.save(post);
+
+        return ResponseEntity.ok(updatedPost);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletePost(@PathVariable Long id) {
-
-        if (!postRepository.existsById(id)) {
-            throw new ResourceNotFoundException("404 Not found");
-        }
-
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
         postRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
-
     }
 }
