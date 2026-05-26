@@ -4,10 +4,14 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-@Entity
+@Entity@EntityListeners(AuditingEntityListener.class)
 @Table(name = "users")
 @Getter
 @Setter
@@ -40,6 +44,13 @@ public class User {
     @NotNull
     @Column(name = "birthday")
     private LocalDate birthday;
+
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
 }
 
 //curl -X POST http://localhost:8080/api/users \
