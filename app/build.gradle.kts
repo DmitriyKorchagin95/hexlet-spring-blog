@@ -28,6 +28,7 @@ dependencies {
 	annotationProcessor("org.projectlombok:lombok")
 	testCompileOnly("org.projectlombok:lombok")
 	testAnnotationProcessor("org.projectlombok:lombok")
+	implementation("net.datafaker:datafaker:1.9.0")
 }
 
 tasks.withType<Test> {
