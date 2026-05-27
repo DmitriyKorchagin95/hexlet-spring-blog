@@ -15,18 +15,6 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserRepository userRepository;
 
-    @GetMapping
-    public ResponseEntity<?> index(@RequestParam(defaultValue = "10") Integer limit) {
-        var users = userRepository.findAll();
-        var limitedUsers = users.stream()
-                .limit(limit)
-                .toList();
-
-        return ResponseEntity.ok()
-                .header("X-Total-Count", String.valueOf(users.size()))
-                .body(limitedUsers);
-    }
-
     @PostMapping
     public ResponseEntity<?> create(@RequestBody @Valid User user) {
         var savedUser = userRepository.save(user);

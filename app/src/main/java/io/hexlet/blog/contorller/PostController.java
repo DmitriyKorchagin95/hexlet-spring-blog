@@ -5,6 +5,9 @@ import io.hexlet.blog.model.Post;
 import io.hexlet.blog.repository.PostRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,15 +19,11 @@ public class PostController {
     private final PostRepository postRepository;
 
     @GetMapping
-    public ResponseEntity<?> index(@RequestParam(defaultValue = "10") Integer limit) {
-        var posts = postRepository.findAll();
-        var limitedPosts = posts.stream()
-                .limit(limit)
-                .toList();
-
-        return ResponseEntity.ok()
-                .header("X-Total-Count", String.valueOf(posts.size()))
-                .body(limitedPosts);
+    public ResponseEntity<?> getPublishedPosts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return ResponseEntity.ok(postRepository.findByPublishedTrue(pageable));
     }
 
     @PostMapping
