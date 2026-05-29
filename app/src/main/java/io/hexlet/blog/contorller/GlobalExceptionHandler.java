@@ -17,8 +17,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<String> handleValidation(MethodArgumentNotValidException ex) {
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body("Validation failed: " + ex.getBindingResult().getFieldError().getDefaultMessage());
+        var fieldError = ex.getBindingResult().getFieldError();
+
+        String message = fieldError != null
+                ? fieldError.getDefaultMessage()
+                : "Validation error";
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT)
+                .body(String.format("Validation failed: %s", message));
     }
 
     @ExceptionHandler(Exception.class)

@@ -24,6 +24,7 @@ public class ModelGenerator {
             user.setFirstname(faker.name().firstName());
             user.setLastname(faker.name().lastName());
             user.setEmail(faker.internet().emailAddress());
+            user.setBirthday(faker.date().birthday().toLocalDateTime().toLocalDate());
             userRepository.save(user);
 
             var post = new Post();
